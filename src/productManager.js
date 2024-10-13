@@ -28,13 +28,13 @@ export class ProductManager {
         }
     }
 
-    async addProduct(title, description, price, thumbnail, code, stock) {
+    async addProduct(title, description, code, price, status, stock, category, thumbnail) {
         let id = 1;
 
-        if (!title || !description || !price || !thumbnail || !code || !stock) {
+        if (!title || !description || !price || !status || !code || !stock || !category) {
             console.log("No se completaron todos los datos");
             return;
-        }
+        } 
 
         await this.leerArchivo();
 
@@ -47,7 +47,7 @@ export class ProductManager {
             id = this.products[this.products.length - 1].id + 1;
         }
 
-        const producto = { id, title, description, price, thumbnail, code, stock };
+        const producto = { id, description, code, price, status, stock, category, thumbnail};
         this.products.push(producto);
         await this.guardarArchivo();
         console.log("Se agregó el producto");
@@ -70,7 +70,7 @@ export class ProductManager {
         return producto;
     }
 
-    async modifyProduct(id, title = "", description = "", price = null, thumbnail = "", code = "", stock = null) {
+    async modifyProduct(id, title = "", description = "", code = "", price = null, status=true,  stock = null, category = "", thumbnail = "", ) {
         const producto = await this.getProductById(id); // Asegúrate de usar await
 
         if (!producto) return; // Sal de la función si el producto no se encuentra
@@ -81,6 +81,8 @@ export class ProductManager {
         producto.thumbnail = thumbnail !== "" ? thumbnail : producto.thumbnail;
         producto.code = code !== "" ? code : producto.code;
         producto.stock = stock !== null ? stock : producto.stock;
+        producto.status = status;
+        producto.category = category !== "" ? category : producto.category;
 
         await this.guardarArchivo(); // Guarda los cambios
         console.log("Producto modificado.");
