@@ -13,13 +13,16 @@ app.get("/products", async (req, res)=>{
     console.log(req.url)
     console.log(req.headers)
 
+   const limit = parseInt(req.query.limit)
    const productos = await productManager.getProducts()
 
     if (!productos.length){
         return res.status(400).send(`Error, aun no hay productos ingresados`)
     }
 
-    res.status(200).send(productos)
+    const productosLimitados = limit && !isNaN(limit) ? productos.slice(0, limit) : productos;
+
+    res.status(200).send(productosLimitados)
 })
 
 app.get("/products/:id", async (req, res)=>{

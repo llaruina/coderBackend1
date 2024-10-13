@@ -100,6 +100,7 @@ export class ProductManager {
 }
 
 // Ejemplo de uso
+/*
 const productManager = new ProductManager("./products.json");
 
 (async () => {
@@ -110,3 +111,4 @@ const productManager = new ProductManager("./products.json");
     await productManager.deleteProduct(1);
     console.log(await productManager.getProducts());
 })();
+*/
