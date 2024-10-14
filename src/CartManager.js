@@ -66,8 +66,10 @@ export class CartManager {
         if (!producto) {
             producto = new CartProduct(idProduct, 1);
             cart.products.push(producto);
+            console.log("Producto no encontrado, se crea uno nuevo")
         } else {
             producto.quantity++;
+            console.log("Producto encontrado, se suma 1")
         }
     
         await this.guardarArchivo();
