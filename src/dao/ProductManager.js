@@ -2,11 +2,15 @@ import fs from 'fs';
 import fsPromesas from 'fs/promises';
 
 export class ProductManager {
-    #path = "";
+     #path = "";
 
     constructor(path) {
         this.products = [];
         this.#path = path;
+    }
+
+    setPath(rutaArchivo=""){
+        this.#path=rutaArchivo
     }
 
     codigoRepetido(code) {

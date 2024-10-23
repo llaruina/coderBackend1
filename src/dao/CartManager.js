@@ -1,9 +1,9 @@
 import fs from 'fs';
 import fsPromesas from 'fs/promises';
-import { CartProduct } from './CartProduct';
+import { CartProduct } from '../CartProduct.js';
 
 export class CartManager {
-    #path = "";
+    #path = "./src/data/carts.json";;
 
     constructor(path) {
         this.carts = [];
@@ -12,7 +12,7 @@ export class CartManager {
 
 
     async guardarArchivo() {
-        await fsPromesas.writeFile(this.#path, JSON.stringify(this.carts,null, 2));
+        await fsPromesas.writeFile(this.#path, JSON.stringify(this.carts, null, 2));
         console.log("Archivo generado...!!!");
     }
 
@@ -22,7 +22,7 @@ export class CartManager {
             this.carts = JSON.parse(archivoLeido);
         } catch (error) {
             console.log("No se pudo leer el archivo o el archivo no existe");
-            this.carts = []; 
+            this.carts = [];
         }
     }
 
@@ -36,16 +36,16 @@ export class CartManager {
         await this.guardarArchivo();
         console.log("Se agregó el carrito");
 
-    return cart;
+        return cart;
     }
-    
+
     async getCart(id) {
-        await this.leerArchivo(); 
+        await this.leerArchivo();
         const cart = this.carts.find(cart => cart.id === id);
 
         if (!cart) {
             console.log('Carrito no encontrado');
-            return null; 
+            return null;
         }
 
         return cart;
@@ -53,16 +53,16 @@ export class CartManager {
 
     async addProductToCart(idCart, idProduct) {
         await this.leerArchivo();
-    
+
         const cart = this.carts.find(cart => cart.id === idCart);
-    
+
         if (!cart) {
             console.log('Carrito no encontrado');
-            return null; 
+            return null;
         }
-    
+
         let producto = cart.products.find(producto => producto.id === Number(idProduct));
-    
+
         if (!producto) {
             producto = new CartProduct(idProduct, 1);
             cart.products.push(producto);
@@ -71,7 +71,7 @@ export class CartManager {
             producto.quantity++;
             console.log("Producto encontrado, se suma 1")
         }
-    
+
         await this.guardarArchivo();
         console.log("Se agregó el producto al carrito");
     }
