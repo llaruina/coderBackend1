@@ -1,10 +1,12 @@
 import { Router } from "express"
 import { CartManager } from "../dao/CartManager.js"
+import { ProductManager } from "../dao/ProductManager.js"
 import { procesaErrores } from "../Errores.js"
 
 export const router = Router()
 
 const cartManager = new CartManager("./src/data/carts.json");
+const productManager = new ProductManager("./src/data/products.json")
 
 
 router.post("/", async (req, res) => {
@@ -58,9 +60,10 @@ router.post("/:cid/product/:pid", async (req, res) => {
 
     try {
         const cart = await cartManager.getCart(cid);
+        const product = await productManager.getProductById(pid)
 
-        if (!cart) {
-            return res.status(404).send(`No existe un carrito con id ${cid}`);
+        if (!cart || !product) {
+            return res.status(404).send(`No existe un carrito con id ${cid} o un producto con id ${pid}`);
         }
 
         await cartManager.addProductToCart(cid, pid);

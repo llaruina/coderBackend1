@@ -2,15 +2,15 @@ import fs from 'fs';
 import fsPromesas from 'fs/promises';
 
 export class ProductManager {
-     #path = "";
+    #path = "./src/data/products.json";
 
     constructor(path) {
         this.products = [];
         this.#path = path;
     }
 
-    setPath(rutaArchivo=""){
-        this.#path=rutaArchivo
+    setPath(rutaArchivo = "") {
+        this.#path = rutaArchivo
     }
 
     codigoRepetido(code) {
@@ -38,7 +38,7 @@ export class ProductManager {
         if (!title || !description || !price || !status || !code || !stock || !category) {
             console.log("No se completaron todos los datos");
             return;
-        } 
+        }
 
         await this.leerArchivo();
 
@@ -51,7 +51,7 @@ export class ProductManager {
             id = this.products[this.products.length - 1].id + 1;
         }
 
-        const producto = { id, title, description, code, price, status, stock, category, thumbnail};
+        const producto = { id, title, description, code, price, status, stock, category, thumbnail };
         this.products.push(producto);
         await this.guardarArchivo();
         console.log("Se agregó el producto");
@@ -63,7 +63,7 @@ export class ProductManager {
     }
 
     async getProductById(id) {
-        await this.getProducts(); 
+        await this.getProducts();
         const producto = this.products.find(producto => producto.id === id);
 
         if (!producto) {
@@ -74,10 +74,10 @@ export class ProductManager {
         return producto;
     }
 
-    async modifyProduct(id, title = "", description = "", code = "", price = null, status=true,  stock = null, category = "", thumbnail = "", ) {
-        const producto = await this.getProductById(id); 
+    async modifyProduct(id, title = "", description = "", code = "", price = null, status = true, stock = null, category = "", thumbnail = "",) {
+        const producto = await this.getProductById(id);
 
-        if (!producto) return; 
+        if (!producto) return;
 
         producto.title = title !== "" ? title : producto.title;
         producto.description = description !== "" ? description : producto.description;
@@ -88,7 +88,7 @@ export class ProductManager {
         producto.status = status;
         producto.category = category !== "" ? category : producto.category;
 
-        await this.guardarArchivo(); 
+        await this.guardarArchivo();
         console.log("Producto modificado.");
     }
 
@@ -97,7 +97,7 @@ export class ProductManager {
 
         if (indice !== -1) {
             this.products.splice(indice, 1);
-            await this.guardarArchivo(); 
+            await this.guardarArchivo();
             console.log(`Producto con ID ${id} eliminado.`);
         } else {
             console.log(`Producto con ID ${id} no encontrado.`);
