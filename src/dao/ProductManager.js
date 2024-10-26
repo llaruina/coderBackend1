@@ -1,5 +1,6 @@
 import fs from 'fs';
 import fsPromesas from 'fs/promises';
+import { serverSocket } from "../app.js"
 
 export class ProductManager {
     #path = "./src/data/products.json";
@@ -54,6 +55,9 @@ export class ProductManager {
         const producto = { id, title, description, code, price, status, stock, category, thumbnail };
         this.products.push(producto);
         await this.guardarArchivo();
+
+        serverSocket.emit("productListUpdate", this.products);
+
         console.log("Se agregó el producto");
     }
 
@@ -102,6 +106,8 @@ export class ProductManager {
         } else {
             console.log(`Producto con ID ${id} no encontrado.`);
         }
+
+        serverSocket.emit("productListUpdate", this.products)
     }
 
 }

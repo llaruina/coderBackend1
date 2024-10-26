@@ -2,6 +2,7 @@ import { Router } from "express"
 import { ProductManager } from "../dao/ProductManager.js"
 import { CartManager } from "../dao/CartManager.js"
 import { procesaErrores } from "../Errores.js"
+import { serverSocket } from '../app.js'
 
 export const routerProduct = Router()
 
@@ -60,6 +61,7 @@ routerProduct.post("/", async (req, res) => {
     }
 
     try {
+
         await productManager.addProduct(title, description, code, price, status, stock, category, thumbnail);
 
         res.status(201).send("Producto agregado con éxito");

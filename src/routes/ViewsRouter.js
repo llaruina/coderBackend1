@@ -17,3 +17,13 @@ vistaRouter.get('/', async (req, res) => {
         procesaErrores(res, error)
     }
 })
+
+
+vistaRouter.get('/realtimeproducts', async (req, res) => {
+    try {
+        const products = await productManager.getProducts();
+        res.render("realTimeProducts", { products });
+    } catch (error) {
+        procesaErrores(res, error);
+    }
+});
