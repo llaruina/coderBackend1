@@ -2,6 +2,7 @@ import { Router } from "express"
 import { CartManager } from "../dao/CartManager.js"
 import { ProductManager } from "../dao/productManager.js"
 import { procesaErrores } from "../Errores.js"
+import mongoose from "mongoose"
 
 export const router = Router()
 
@@ -23,6 +24,7 @@ router.post("/", async (req, res) => {
         procesaErrores(res, error)
     }
 });
+
 
 router.get("/", async (req, res) => {
 
@@ -46,12 +48,6 @@ router.get("/:id", async (req, res) => {
 
     let { id } = req.params
 
-    id = Number(id)
-
-    if (isNaN(id)) {
-        return res.status(400).send(`Error, el id debe ser numércio`)
-    }
-
     try {
         const cart = await cartManager.getCart(id)
 
@@ -64,23 +60,20 @@ router.get("/:id", async (req, res) => {
     } catch (error) {
         procesaErrores(res, error)
     }
-
-})
-
-
-
+});
 
 
 router.post("/:cid/product/:pid", async (req, res) => {
-    let { cid, pid } = req.params;
-    cid = Number(cid);
-    pid = Number(pid);
 
-    if (isNaN(cid) || isNaN(pid)) {
-        return res.status(400).send(`Error, el id debe ser numérico`);
-    }
+    let { cid, pid } = req.params;
 
     try {
+
+        if (!mongoose.Types.ObjectId.isValid(cid) || !mongoose.Types.ObjectId.isValid(pid)) {
+            throw new Error(`El cid o pid proporcionado no es válido`);
+            return;
+        }
+
         const cart = await cartManager.getCart(cid);
         const product = await productManager.getProductById(pid)
 
@@ -91,6 +84,32 @@ router.post("/:cid/product/:pid", async (req, res) => {
         await cartManager.addProductToCart(cid, pid);
 
         res.status(201).send("Producto agregado al carrito con éxito");
+
+    } catch (error) {
+        procesaErrores(res, error)
+    }
+});
+
+
+router.delete("/:cid/products/:pid", async (req, res) => {
+
+    let { cid, pid } = req.params;
+
+    try {
+        const producto = await productManager.getProductById(pid)
+        const carrito = await cartManager.getCart(cid)
+
+        if (!producto) {
+            return res.status(404).send(`No existe un producto con id ${pid}`)
+        }
+
+        if (!carrito) {
+            return res.status(404).send(`No existe un carrito con id ${cid}`)
+        }
+
+        await cartManager.deleteCartProduct(cid, pid);
+
+        res.status(201).send("Producto eliminado con éxito del carrito");
 
     } catch (error) {
         procesaErrores(res, error)

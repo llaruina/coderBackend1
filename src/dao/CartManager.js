@@ -15,6 +15,7 @@ export class CartManager {
     }
 
     async getCart(id) {
+
         try {
             const cart = await cartsModelo.findById(id).lean();
             if (!cart) {
@@ -51,9 +52,10 @@ export class CartManager {
                 return null;
             }
 
-            const productIndex = cart.products.findIndex(product => product.id === idProduct);
+            const productIndex = cart.products.findIndex(product => product._id == idProduct);
+
             if (productIndex === -1) {
-                cart.products.push({ id: idProduct, quantity: 1 });
+                cart.products.push({ _id: idProduct, quantity: 1 });
                 console.log("Producto no encontrado, se crea uno nuevo");
             } else {
                 cart.products[productIndex].quantity += 1;
@@ -68,4 +70,33 @@ export class CartManager {
             throw error;
         }
     }
+
+
+    async deleteCartProduct(idCart, idProduct) {
+
+        try {
+            const cart = await this.getCart(idCart);
+
+            if (!cart) {
+                console.log('Carrito no encontrado');
+                return null;
+            }
+
+            const initialLength = cart.products.length;
+            cart.products = cart.products.filter(product => product._id != idProduct);
+
+            if (cart.products.length === initialLength) {
+                console.log('Producto no encontrado en el carrito');
+                return null;
+            }
+
+            await cartsModelo.findByIdAndUpdate(idCart, { products: cart.products });
+            console.log('Producto eliminado con éxito del carrito');
+
+        } catch (error) {
+            console.error('Error al eliminar producto del carrito:', error);
+            throw error;
+        }
+    }
+
 }

@@ -28,17 +28,17 @@ routerProduct.get("/", async (req, res) => {
     }
 })
 
+
 routerProduct.get("/:id", async (req, res) => {
 
-    let { id } = req.params
-
-    id = Number(id)
-
-    if (isNaN(id)) {
-        return res.status(400).send(`Error, el id debe ser numércio`)
-    }
+    const { id } = req.params;
 
     try {
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            throw new Error(`El ID proporcionado (${id}) no es un id válido`);
+        }
+
         const producto = await productManager.getProductById(id)
 
         if (!producto) {
@@ -80,15 +80,8 @@ routerProduct.post("/", async (req, res) => {
 
 
 routerProduct.put("/:id", async (req, res) => {
-    const { title, description, code, price, status, stock, category, thumbnail } = req.body; // Extraemos los campos del cuerpo de la solicitud
+    const { title, description, code, price, status, stock, category, thumbnail } = req.body;
 
-    let { id } = req.params
-
-    id = Number(id)
-
-    if (isNaN(id)) {
-        return res.status(400).send(`Error, el id debe ser numércio`)
-    }
 
     try {
         const producto = await productManager.getProductById(id)
@@ -97,7 +90,7 @@ routerProduct.put("/:id", async (req, res) => {
             return res.status(404).send(`No existe un producto con id ${id}`)
         }
 
-        await productManager.modifyProduct(id, title, description, code, price, status, stock, category, thumbnail);
+        await productManager.updateProduct(id, title, description, code, price, status, stock, category, thumbnail);
 
         res.status(201).send("Producto modificado con éxito");
 
@@ -110,12 +103,6 @@ routerProduct.put("/:id", async (req, res) => {
 routerProduct.delete("/:id", async (req, res) => {
 
     let { id } = req.params
-
-    id = Number(id)
-
-    if (isNaN(id)) {
-        return res.status(400).send(`Error, el id debe ser numércio`)
-    }
 
     try {
         const producto = await productManager.getProductById(id)
