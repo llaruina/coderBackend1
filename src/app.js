@@ -1,14 +1,17 @@
 import { CartManager } from "./dao/CartManager.js"
 import { routerProduct as productsManagerRouter } from "./routes/ProductManagerRouter.js"
 import { router as cartsManagerRouter } from "./routes/CartManagerRouter.js"
-import { ProductManager } from "./dao/ProductManager.js"
+import mongoose from "mongoose"
+import { ProductManager } from "./dao/productManager.js"
 import { vistaRouter } from "./routes/viewsRouter.js"
 
 import express from "express"
 import { engine } from "express-handlebars"
 import { Server } from "socket.io"
 
-const productManager = new ProductManager("./src/data/products.json")
+//const productManager = new ProductManager("./src/data/products.json")
+
+const productManager = new ProductManager()
 
 const PORT = 8080
 
@@ -44,3 +47,18 @@ serverSocket.on("connection", (socket) => {
     });
 
 });
+
+const conectarDB = async () => {
+    try {
+        await mongoose.connect(
+            "mongodb+srv://llaruina:CoderCoder@cluster0.3neu1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+            {
+                dbName: "coderhouse"
+            }
+        )
+    } catch (error) {
+        console.log(`Error: ${error.message}`)
+    }
+}
+
+conectarDB()

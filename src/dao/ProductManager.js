@@ -1,84 +1,63 @@
 import fs from 'fs';
 import fsPromesas from 'fs/promises';
 import { serverSocket } from "../app.js"
+import { productosModelo } from './models/products.model.js';
+import mongoose from 'mongoose';
 
 export class ProductManager {
-    #path = "./src/data/products.json";
 
-    constructor(path) {
+    constructor() {
         this.products = [];
-        this.#path = path;
     }
 
-    setPath(rutaArchivo = "") {
-        this.#path = rutaArchivo
+
+    async codigoRepetido(code) {
+        let productos = await this.getProducts();
+
+        return productos.find(producto => producto.code === code);
     }
 
-    codigoRepetido(code) {
-        return this.products.find(producto => producto.code === code);
+
+    async getProducts() {
+
+        return await productosModelo.find().lean();
     }
 
-    async guardarArchivo() {
-        await fsPromesas.writeFile(this.#path, JSON.stringify(this.products));
-        console.log("Archivo generado...!!!");
+
+
+    async getProductById(id) {
+
+        return await productosModelo.findOne({ id: id })
     }
 
-    async leerArchivo() {
-        try {
-            const archivoLeido = await fsPromesas.readFile(this.#path, { encoding: "utf-8" });
-            this.products = JSON.parse(archivoLeido);
-        } catch (error) {
-            console.log("No se pudo leer el archivo o el archivo no existe");
-            this.products = [];
-        }
-    }
 
     async addProduct(title, description, code, price, status, stock, category, thumbnail) {
-        let id = 1;
+
 
         if (!title || !description || !price || !status || !code || !stock || !category) {
             console.log("No se completaron todos los datos");
             return;
         }
 
-        await this.leerArchivo();
+        const codigoRepetido = await this.codigoRepetido(code)
 
-        if (this.codigoRepetido(code)) {
+        if (codigoRepetido) {
             console.log("El código del producto ya existe");
             return;
         }
 
-        if (this.products.length > 0) {
-            id = this.products[this.products.length - 1].id + 1;
-        }
 
-        const producto = { id, title, description, code, price, status, stock, category, thumbnail };
+        const producto = { title, description, code, price, status, stock, category, thumbnail };
         this.products.push(producto);
-        await this.guardarArchivo();
 
         serverSocket.emit("productListUpdate", this.products);
 
         console.log("Se agregó el producto");
+
+        return await productosModelo.create(producto)
     }
 
-    async getProducts() {
-        await this.leerArchivo();
-        return this.products;
-    }
-
-    async getProductById(id) {
-        await this.getProducts();
-        const producto = this.products.find(producto => producto.id === id);
-
-        if (!producto) {
-            console.log('Producto no encontrado');
-            return null;
-        }
-
-        return producto;
-    }
-
-    async modifyProduct(id, title = "", description = "", code = "", price = null, status = true, stock = null, category = "", thumbnail = "",) {
+    async updateProduct(id, title = "", description = "", code = "", price = null, status = true, stock = null, category = "", thumbnail = "",) {
         const producto = await this.getProductById(id);
 
         if (!producto) return;
@@ -92,22 +71,16 @@ export class ProductManager {
         producto.status = status;
         producto.category = category !== "" ? category : producto.category;
 
-        await this.guardarArchivo();
         console.log("Producto modificado.");
+
+        return productosModelo.findByIdAndUpdate(id, producto)
     }
 
     async deleteProduct(id) {
-        const indice = this.products.findIndex(product => product.id === id);
-
-        if (indice !== -1) {
-            this.products.splice(indice, 1);
-            await this.guardarArchivo();
-            console.log(`Producto con ID ${id} eliminado.`);
-        } else {
-            console.log(`Producto con ID ${id} no encontrado.`);
-        }
 
         serverSocket.emit("productListUpdate", this.products)
+
+        return await productosModelo.findByIdAndDelete(id)
     }
 
 }

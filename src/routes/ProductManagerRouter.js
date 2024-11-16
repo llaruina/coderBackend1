@@ -1,12 +1,13 @@
 import { Router } from "express"
-import { ProductManager } from "../dao/ProductManager.js"
+import { ProductManager } from "../dao/productManager.js"
 import { CartManager } from "../dao/CartManager.js"
 import { procesaErrores } from "../Errores.js"
 import { serverSocket } from '../app.js'
 
 export const routerProduct = Router()
 
-const productManager = new ProductManager("./src/data/products.json");
+//const productManager = new ProductManager("./src/data/products.json");
+const productManager = new ProductManager();
 
 routerProduct.get("/", async (req, res) => {
 
@@ -58,6 +59,10 @@ routerProduct.post("/", async (req, res) => {
 
     if (!title || !description || !price || !status || !code || !stock || !category) {
         return res.status(400).send("Error: Todos los campos son requeridos");
+    }
+
+    if (!productManager.codigoRepetido(code)) {
+        return res.status(400).send("Error: el codigo esta repetido");
     }
 
     try {
