@@ -1,13 +1,15 @@
 import { Router } from "express"
 import { CartManager } from "../dao/CartManager.js"
-import { ProductManager } from "../dao/ProductManager.js"
+import { ProductManager } from "../dao/productManager.js"
 import { procesaErrores } from "../Errores.js"
 
 export const router = Router()
 
-const cartManager = new CartManager("./src/data/carts.json");
-const productManager = new ProductManager("./src/data/products.json")
+//const cartManager = new CartManager("./src/data/carts.json");
+//const productManager = new ProductManager("./src/data/products.json")
 
+const cartManager = new CartManager();
+const productManager = new ProductManager()
 
 router.post("/", async (req, res) => {
     const { cart } = req.body;
@@ -21,6 +23,23 @@ router.post("/", async (req, res) => {
         procesaErrores(res, error)
     }
 });
+
+router.get("/", async (req, res) => {
+
+    try {
+        const cart = await cartManager.getCarts()
+
+        if (!cart) {
+            return res.status(404).send(`No existen carritos`)
+        }
+
+        res.status(200).send(cart)
+
+    } catch (error) {
+        procesaErrores(res, error)
+    }
+
+})
 
 
 router.get("/:id", async (req, res) => {
@@ -47,6 +66,9 @@ router.get("/:id", async (req, res) => {
     }
 
 })
+
+
+
 
 
 router.post("/:cid/product/:pid", async (req, res) => {

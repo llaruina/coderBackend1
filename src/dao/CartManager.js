@@ -1,78 +1,71 @@
-import fs from 'fs';
-import fsPromesas from 'fs/promises';
-import { CartProduct } from '../CartProduct.js';
+import { cartsModelo } from '../dao/models/carts.model.js';
 
 export class CartManager {
-    #path = "./src/data/carts.json";;
-
-    constructor(path) {
-        this.carts = [];
-        this.#path = path;
-    }
-
-
-    async guardarArchivo() {
-        await fsPromesas.writeFile(this.#path, JSON.stringify(this.carts, null, 2));
-        console.log("Archivo generado...!!!");
-    }
-
-    async leerArchivo() {
-        try {
-            const archivoLeido = await fsPromesas.readFile(this.#path, { encoding: "utf-8" });
-            this.carts = JSON.parse(archivoLeido);
-        } catch (error) {
-            console.log("No se pudo leer el archivo o el archivo no existe");
-            this.carts = [];
-        }
-    }
+    constructor() { }
 
     async addCart(products = []) {
-        await this.leerArchivo();
-
-        let id = this.carts.length > 0 ? this.carts[this.carts.length - 1].id + 1 : 1;
-
-        const cart = { id, products };
-        this.carts.push(cart);
-        await this.guardarArchivo();
-        console.log("Se agregó el carrito");
-
-        return cart;
+        try {
+            const cart = { products };
+            console.log("Se agregó el carrito");
+            return await cartsModelo.create(cart);
+        } catch (error) {
+            console.error("Error al agregar carrito:", error);
+            throw error;
+        }
     }
 
     async getCart(id) {
-        await this.leerArchivo();
-        const cart = this.carts.find(cart => cart.id === id);
+        try {
+            const cart = await cartsModelo.findById(id).lean();
+            if (!cart) {
+                console.log('Carrito no encontrado');
+                return null;
+            }
 
-        if (!cart) {
-            console.log('Carrito no encontrado');
-            return null;
+            return cart;
+
+        } catch (error) {
+            console.error("Error al obtener carrito:", error);
+            throw error;
         }
+    }
 
-        return cart;
+    async getCarts() {
+        try {
+
+            return await cartsModelo.find().lean();
+
+        } catch (error) {
+            console.error("Error al obtener carrito:", error);
+            throw error;
+        }
     }
 
     async addProductToCart(idCart, idProduct) {
-        await this.leerArchivo();
 
-        const cart = this.carts.find(cart => cart.id === idCart);
+        try {
+            const cart = await this.getCart(idCart);
 
-        if (!cart) {
-            console.log('Carrito no encontrado');
-            return null;
+            if (!cart) {
+                console.log('Carrito no encontrado');
+                return null;
+            }
+
+            const productIndex = cart.products.findIndex(product => product.id === idProduct);
+            if (productIndex === -1) {
+                cart.products.push({ id: idProduct, quantity: 1 });
+                console.log("Producto no encontrado, se crea uno nuevo");
+            } else {
+                cart.products[productIndex].quantity += 1;
+                console.log("Producto encontrado, se incrementa cantidad");
+            }
+
+            await cartsModelo.findByIdAndUpdate(idCart, { products: cart.products });
+            console.log("Se actualizó el carrito con el producto");
+
+        } catch (error) {
+            console.error("Error al agregar producto al carrito:", error);
+            throw error;
         }
-
-        let producto = cart.products.find(producto => producto.id === Number(idProduct));
-
-        if (!producto) {
-            producto = new CartProduct(idProduct, 1);
-            cart.products.push(producto);
-            console.log("Producto no encontrado, se crea uno nuevo")
-        } else {
-            producto.quantity++;
-            console.log("Producto encontrado, se suma 1")
-        }
-
-        await this.guardarArchivo();
-        console.log("Se agregó el producto al carrito");
     }
 }

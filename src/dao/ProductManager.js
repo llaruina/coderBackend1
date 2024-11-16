@@ -1,86 +1,92 @@
-import fs from 'fs';
-import fsPromesas from 'fs/promises';
-import { serverSocket } from "../app.js"
+import { serverSocket } from "../app.js";
 import { productosModelo } from './models/products.model.js';
 import mongoose from 'mongoose';
 
 export class ProductManager {
 
     constructor() {
-        this.products = [];
-    }
 
+    }
 
     async codigoRepetido(code) {
-        let productos = await this.getProducts();
 
+        let productos = await this.getProducts();
         return productos.find(producto => producto.code === code);
     }
-
 
     async getProducts() {
 
         return await productosModelo.find().lean();
     }
 
-
-
     async getProductById(id) {
 
-        return await productosModelo.findOne({ id: id })
+        return await productosModelo.findOne({ _id: id });
     }
 
-
     async addProduct(title, description, code, price, status, stock, category, thumbnail) {
-
-
         if (!title || !description || !price || !status || !code || !stock || !category) {
             console.log("No se completaron todos los datos");
             return;
         }
 
-        const codigoRepetido = await this.codigoRepetido(code)
-
+        const codigoRepetido = await this.codigoRepetido(code);
         if (codigoRepetido) {
             console.log("El código del producto ya existe");
             return;
         }
 
-
         const producto = { title, description, code, price, status, stock, category, thumbnail };
-        this.products.push(producto);
 
-        serverSocket.emit("productListUpdate", this.products);
+        await productosModelo.create(producto);
+
+
+        const products = await this.getProducts();
+        serverSocket.emit("productListUpdate", products);
 
         console.log("Se agregó el producto");
-
-        return await productosModelo.create(producto)
+        return producto;
     }
 
-    async updateProduct(id, title = "", description = "", code = "", price = null, status = true, stock = null, category = "", thumbnail = "",) {
+    async updateProduct(id, title = "", description = "", code = "", price = null, status = true, stock = null, category = "", thumbnail = "") {
+
         const producto = await this.getProductById(id);
+        if (!producto) {
+            console.log("Producto no encontrado");
+            return;
+        }
 
-        if (!producto) return;
-
-        producto.title = title !== "" ? title : producto.title;
-        producto.description = description !== "" ? description : producto.description;
-        producto.price = price !== null ? price : producto.price;
-        producto.thumbnail = thumbnail !== "" ? thumbnail : producto.thumbnail;
-        producto.code = code !== "" ? code : producto.code;
-        producto.stock = stock !== null ? stock : producto.stock;
+        producto.title = title || producto.title;
+        producto.description = description || producto.description;
+        producto.code = code || producto.code;
+        producto.price = price || producto.price;
         producto.status = status;
-        producto.category = category !== "" ? category : producto.category;
+        producto.stock = stock || producto.stock;
+        producto.category = category || producto.category;
+        producto.thumbnail = thumbnail || producto.thumbnail;
+
+        await productosModelo.findByIdAndUpdate(id, producto);
+
+        const products = await this.getProducts();
+        serverSocket.emit("productListUpdate", products);
 
         console.log("Producto modificado.");
-
-        return productosModelo.findByIdAndUpdate(id, producto)
+        return producto;
     }
 
     async deleteProduct(id) {
+        const producto = await this.getProductById(id);
+        if (!producto) {
+            console.log("Producto no encontrado");
+            return;
+        }
 
-        serverSocket.emit("productListUpdate", this.products)
+        await productosModelo.findByIdAndDelete(id);
 
-        return await productosModelo.findByIdAndDelete(id)
+        const products = await this.getProducts();
+        serverSocket.emit("productListUpdate", products);
+
+        console.log("Producto eliminado.");
+        return producto;
     }
-
 }
