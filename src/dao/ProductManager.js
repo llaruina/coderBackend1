@@ -24,6 +24,11 @@ export class ProductManager {
         return await productosModelo.findOne({ _id: id });
     }
 
+    async getProductByCode(code) {
+
+        return await productosModelo.findOne({ code });
+    }
+
     async addProduct(title, description, code, price, status, stock, category, thumbnail) {
         if (!title || !description || !price || !status || !code || !stock || !category) {
             console.log("No se completaron todos los datos");

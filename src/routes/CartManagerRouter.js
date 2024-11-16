@@ -71,7 +71,6 @@ router.post("/:cid/product/:pid", async (req, res) => {
 
         if (!mongoose.Types.ObjectId.isValid(cid) || !mongoose.Types.ObjectId.isValid(pid)) {
             throw new Error(`El cid o pid proporcionado no es válido`);
-            return;
         }
 
         const cart = await cartManager.getCart(cid);
@@ -91,11 +90,78 @@ router.post("/:cid/product/:pid", async (req, res) => {
 });
 
 
+router.put("/:cid", async (req, res) => {
+
+    let { cid } = req.params;
+    let productos = req.body;
+
+    try {
+
+        if (!mongoose.Types.ObjectId.isValid(cid)) {
+            throw new Error(`El cid proporcionado no es válido`);
+        }
+
+        const cart = await cartManager.getCart(cid);
+
+        if (!cart) {
+            return res.status(404).send(`No existe un carrito con id ${cid}`);
+        }
+
+
+        for (const producto of productos) {
+
+            const product = await productManager.getProductByCode(producto.code);
+
+            if (!product) {
+                return res.status(404).send(`No existe un producto con el codigo ${producto.code}. Se agregaron los productos anteriores al carrito`);
+            }
+
+            await cartManager.addProductToCart(cid, product._id);
+        }
+
+        res.status(201).send("Productos agregados al carrito con éxito");
+
+    } catch (error) {
+        procesaErrores(res, error);
+    }
+});
+
+
+router.delete("/:cid", async (req, res) => {
+
+    let { cid } = req.params;
+
+    try {
+
+        if (!mongoose.Types.ObjectId.isValid(cid)) {
+            throw new Error(`El cid o pid proporcionado no es válido`);
+        }
+
+        const carrito = await cartManager.getCart(cid)
+
+        if (!carrito) {
+            return res.status(404).send(`No existe un carrito con id ${cid}`)
+        }
+
+        await cartManager.deleteCartProducts(cid);
+
+        res.status(201).send("Productos eliminados del carrito");
+
+    } catch (error) {
+        procesaErrores(res, error)
+    }
+});
+
 router.delete("/:cid/products/:pid", async (req, res) => {
 
     let { cid, pid } = req.params;
 
     try {
+
+        if (!mongoose.Types.ObjectId.isValid(cid) || !mongoose.Types.ObjectId.isValid(pid)) {
+            throw new Error(`El cid o pid proporcionado no es válido`);
+        }
+
         const producto = await productManager.getProductById(pid)
         const carrito = await cartManager.getCart(cid)
 
@@ -115,3 +181,4 @@ router.delete("/:cid/products/:pid", async (req, res) => {
         procesaErrores(res, error)
     }
 });
+

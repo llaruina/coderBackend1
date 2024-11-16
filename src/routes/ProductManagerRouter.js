@@ -3,6 +3,7 @@ import { ProductManager } from "../dao/productManager.js"
 import { CartManager } from "../dao/CartManager.js"
 import { procesaErrores } from "../Errores.js"
 import { serverSocket } from '../app.js'
+import mongoose from "mongoose"
 
 export const routerProduct = Router()
 
@@ -90,7 +91,7 @@ routerProduct.put("/:id", async (req, res) => {
             return res.status(404).send(`No existe un producto con id ${id}`)
         }
 
-        await productManager.updateProduct(id, title, description, code, price, status, stock, category, thumbnail);
+        await productManager.updateProduct(title, description, code, price, status, stock, category, thumbnail);
 
         res.status(201).send("Producto modificado con éxito");
 
