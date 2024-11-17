@@ -14,9 +14,14 @@ export class ProductManager {
         return productos.find(producto => producto.code === code);
     }
 
-    async getProducts() {
-
-        return await productosModelo.find();
+    async getProducts(filtro = {}, options = {}) {
+        try {
+            // Llama a la función paginate del modelo con los filtros y opciones.
+            const productos = await productosModelo.paginate(filtro, options);
+            return productos; // Devuelve los resultados paginados
+        } catch (error) {
+            throw new Error("Error al obtener los productos: " + error.message);
+        }
     }
 
     async getProductById(id) {

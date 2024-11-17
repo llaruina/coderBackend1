@@ -11,23 +11,45 @@ export const routerProduct = Router()
 const productManager = new ProductManager();
 
 routerProduct.get("/", async (req, res) => {
-
-    const limit = parseInt(req.query.limit)
+    const {
+        limit = 10,
+        page = 1,
+        sort,
+        query
+    } = req.query;
 
     try {
-        const productos = await productManager.getProducts()
+        const options = {
+            limit: parseInt(limit),
+            page: parseInt(page),
+            sort: sort === "asc" ? { price: 1 } : sort === "desc" ? { price: -1 } : undefined,
+        };
 
-        if (!productos.length) {
-            return res.status(400).send(`Error, aun no hay productos ingresados`)
+        const filtro = query ? { category: query } : {};
+
+        const productos = await productManager.getProducts(filtro, options);
+
+        if (!productos.docs.length) {
+            return res.status(404).send("No se encontraron productos.");
         }
 
-        const productosLimitados = limit && !isNaN(limit) ? productos.slice(0, limit) : productos;
-        res.status(200).send(productosLimitados)
+        res.status(200).send({
+            status: "success",
+            payload: productos.docs,
+            totalPages: productos.totalPages,
+            prevPage: productos.prevPage,
+            nextPage: productos.nextPage,
+            page: productos.page,
+            hasPrevPage: productos.hasPrevPage,
+            hasNextPage: productos.hasNextPage,
+            prevLink: productos.hasPrevPage ? `?page=${productos.prevPage}&limit=${limit}` : null,
+            nextLink: productos.hasNextPage ? `?page=${productos.nextPage}&limit=${limit}` : null,
+        });
 
     } catch (error) {
-        procesaErrores(res, error)
+        procesaErrores(res, error);
     }
-})
+});
 
 
 routerProduct.get("/:id", async (req, res) => {
