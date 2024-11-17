@@ -27,3 +27,5 @@ vistaRouter.get('/realtimeproducts', async (req, res) => {
         procesaErrores(res, error);
     }
 });
+
+

@@ -17,7 +17,7 @@ export class CartManager {
     async getCart(id) {
 
         try {
-            const cart = await cartsModelo.findById(id).lean();
+            const cart = await cartsModelo.findById(id).populate("products.product").lean();
             if (!cart) {
                 console.log('Carrito no encontrado');
                 return null;
@@ -34,7 +34,7 @@ export class CartManager {
     async getCarts() {
         try {
 
-            return await cartsModelo.find().lean();
+            return await cartsModelo.find().populate("products.product").lean();
 
         } catch (error) {
             console.error("Error al obtener carrito:", error);

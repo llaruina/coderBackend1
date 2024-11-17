@@ -81,6 +81,9 @@ routerProduct.post("/", async (req, res) => {
 
 
 routerProduct.put("/:id", async (req, res) => {
+
+    const { id } = req.params;
+
     const { title, description, code, price, status, stock, category, thumbnail } = req.body;
 
 
@@ -91,7 +94,7 @@ routerProduct.put("/:id", async (req, res) => {
             return res.status(404).send(`No existe un producto con id ${id}`)
         }
 
-        await productManager.updateProduct(title, description, code, price, status, stock, category, thumbnail);
+        await productManager.updateProduct(id, title, description, code, price, status, stock, category, thumbnail);
 
         res.status(201).send("Producto modificado con éxito");
 
