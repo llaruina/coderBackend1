@@ -29,13 +29,17 @@ routerProduct.get("/", async (req, res) => {
 
         const productos = await productManager.getProducts(filtro, options);
 
-        if (!productos.docs.length) {
+        console.log(productos)
+
+        /*
+        if (!productos.length) {
             return res.status(404).send("No se encontraron productos.");
         }
+            */
 
         res.status(200).send({
             status: "success",
-            payload: productos.docs,
+            payload: productos,
             totalPages: productos.totalPages,
             prevPage: productos.prevPage,
             nextPage: productos.nextPage,

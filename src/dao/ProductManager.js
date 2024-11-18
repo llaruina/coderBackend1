@@ -11,7 +11,7 @@ export class ProductManager {
     async codigoRepetido(code) {
 
         let productos = await this.getProducts();
-        return productos.find(producto => producto.code === code);
+        return productos.docs.find(producto => producto.code === code);
     }
 
     async getProducts(filtro = {}, options = {}) {

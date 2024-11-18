@@ -4,8 +4,8 @@ import { procesaErrores } from "../Errores.js";
 
 export const vistaRouter = Router()
 
-const productManager = new ProductManager("./src/data/products.json")
-
+//const productManager = new ProductManager("./src/data/products.json")
+const productManager = new ProductManager()
 
 vistaRouter.get('/', async (req, res) => {
     try {
